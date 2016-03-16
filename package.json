@@ -1,0 +1,31 @@
+{
+  "name": "meta-extractor",
+  "version": "1.0.0",
+  "description": "Simple, stream based, html meta data extractor",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/velocityzen/meta-extractor.git"
+  },
+  "keywords": [
+    "meta",
+    "og",
+    "opengraph",
+    "html",
+    "parser",
+    "extractor"
+  ],
+  "author": "Alexey Novikov <v@2dubs.com> (http://2dubs.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/velocityzen/meta-extractor/issues"
+  },
+  "homepage": "https://github.com/velocityzen/meta-extractor#readme",
+  "dependencies": {
+    "htmlparser2": "^3.9.0",
+    "hyperquest": "^1.3.0"
+  }
+}
