@@ -20,10 +20,12 @@ Extracts:
 ```js
 const extract = require('meta-extractor');
 
-extract({ uri: 'http://www.newyorker.com' }, function(err, res) {
-  console.log(err, res);
-});
+extract({ uri: 'http://www.newyorker.com' }, (err, res) =>
+  console.log(err, res)
+);
 ```
+
+
 
 License MIT;
 
