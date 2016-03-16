@@ -63,7 +63,7 @@ function extract(opts, cb) {
     }
   }, { decodeEntities: true });
 
-  hyperquest(opts)
+  hyperquest(opts.uri, opts)
     .on('data', chunk => parser.write(chunk))
     .on('end', () => {
       res.title = res.title.replace(/\s{2,}|\n/gmi, '');
