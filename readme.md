@@ -9,7 +9,7 @@ Extracts:
 * theme-color
 * all opengraph related data
 * all twitter related data
-* all image urls (absolute)
+* all unique image urls (absolute)
 
 ## install
 

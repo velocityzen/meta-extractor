@@ -6,7 +6,7 @@ const htmlparser = require('htmlparser2');
 let rxMeta = /charset|description|twitter:|og:|theme-color/im;
 
 function fixName(name) {
-  return name.replace(/(?:\:|_)(\w)/g, function(matches, letter) {
+  return name.replace(/(?:\:|_)(\w)/g, (matches, letter) => {
     return letter.toUpperCase();
   });
 }
@@ -26,8 +26,9 @@ function extract(opts, cb) {
   let uri = url.parse(opts.uri);
   let host = uri.protocol + '//' + uri.host;
   let res = {
+    host: uri.host,
     title: '',
-    images: []
+    images: new Set()
   };
   let isHead = false;
   let current;
@@ -47,7 +48,7 @@ function extract(opts, cb) {
           if (src[0] === '/') {
             src = host + src;
           }
-          res.images.push(src);
+          res.images.add(src);
         }
       }
     },
