@@ -10,6 +10,7 @@ Extracts:
 * all opengraph related data
 * all twitter related data
 * all unique image urls (absolute)
+* __returns mime and extension for binary files__
 
 ## install
 

@@ -2,6 +2,7 @@
 const url = require('url');
 const hyperquest = require('hyperquest');
 const htmlparser = require('htmlparser2');
+const fileType = require('file-type');
 
 let rxMeta = /charset|description|twitter:|og:|theme-color/im;
 
@@ -27,8 +28,8 @@ function extract(opts, cb) {
   let host = uri.protocol + '//' + uri.host;
   let res = {
     host: uri.host,
-    title: '',
-    images: new Set()
+    path: uri.path,
+    title: ''
   };
   let isHead = false;
   let current;
@@ -48,6 +49,10 @@ function extract(opts, cb) {
           if (src[0] === '/') {
             src = host + src;
           }
+
+          if (!res.images) {
+            res.images = new Set();
+          }
           res.images.add(src);
         }
       }
@@ -64,13 +69,31 @@ function extract(opts, cb) {
     }
   }, { decodeEntities: true });
 
-  hyperquest(opts)
-    .on('data', chunk => parser.write(chunk))
+  let isClosed = false;
+  let isFileChecked = false;
+  let req = hyperquest(opts)
+    .on('data', chunk => {
+      if (!isFileChecked) {
+        let file = fileType(chunk);
+
+        if (file) {
+          res.file = file;
+          req.end();
+          isClosed = true;
+          req.destroy();
+          return;
+        }
+
+        isFileChecked = true;
+      }
+
+      parser.write(chunk);
+    })
     .on('end', () => {
       res.title = res.title.replace(/\s{2,}|\n/gmi, '');
       cb(null, res);
     })
-    .on('close', () => cb(new Error('Read stream was closed')))
+    .on('close', () => !isClosed && cb(new Error('Read stream was closed')))
     .on('error', err => cb(err));
 }
 
