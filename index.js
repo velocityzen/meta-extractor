@@ -46,14 +46,10 @@ function extract(opts, cb) {
       } else if (name === 'img') {
         let src = attrs.src;
         if (src && src.substr(0, 4) !== 'data') {
-          if (src[0] === '/') {
-            src = host + src;
-          }
-
           if (!res.images) {
             res.images = new Set();
           }
-          res.images.add(src);
+          res.images.add(url.resolve(host, src));
         }
       }
     },
