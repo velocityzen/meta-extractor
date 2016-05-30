@@ -49,7 +49,7 @@ function extract(opts, cb) {
           if (!res.images) {
             res.images = new Set();
           }
-          res.images.add(url.resolve(host, src));
+          res.images.add(url.resolve(opts.uri, src));
         }
       }
     },
