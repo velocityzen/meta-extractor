@@ -25,7 +25,6 @@ function parseMeta(attr) {
 
 function extract(opts, cb) {
   let uri = url.parse(opts.uri);
-  let host = uri.protocol + '//' + uri.host;
   let res = {
     host: uri.host,
     path: uri.path,
