@@ -39,7 +39,7 @@ function extract(opts, cb) {
         isHead = true;
       } else if (name === 'meta') {
         let meta = parseMeta(attrs);
-        if (meta) {
+        if (meta && !res[meta[0]]) {
           res[meta[0]] = meta[1];
         }
       } else if (name === 'img') {
