@@ -23,16 +23,11 @@ function parseMeta(attr) {
   }
 }
 
-function extract(opts, cb) {
-  let uri = url.parse(opts.uri);
-  let res = {
-    host: uri.host,
-    path: uri.path,
-    title: ''
-  };
+function createParser(uri, res) {
   let isHead = false;
   let current;
-  let parser = new htmlparser.Parser({
+
+  return new htmlparser.Parser({
     onopentag: function(name, attrs) {
       current = name;
       if (name === 'head') {
@@ -48,7 +43,7 @@ function extract(opts, cb) {
           if (!res.images) {
             res.images = new Set();
           }
-          res.images.add(url.resolve(opts.uri, src));
+          res.images.add(url.resolve(uri, src));
         }
       }
     },
@@ -63,7 +58,17 @@ function extract(opts, cb) {
       }
     }
   }, { decodeEntities: true });
+}
 
+function extract(opts, cb) {
+  let uri = url.parse(opts.uri);
+  let res = {
+    host: uri.host,
+    path: uri.path,
+    title: ''
+  };
+
+  let parser;
   let isClosed = false;
   let isFileChecked = false;
   let req = hyperquest(opts)
@@ -79,6 +84,7 @@ function extract(opts, cb) {
           return;
         }
 
+        parser = createParser(opts.uri, res);
         isFileChecked = true;
       }
 
