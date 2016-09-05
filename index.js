@@ -28,7 +28,7 @@ function createParser(uri, res) {
   let current;
 
   return new htmlparser.Parser({
-    onopentag: function(name, attrs) {
+    onopentag: (name, attrs) => {
       current = name;
       if (name === 'head') {
         isHead = true;
@@ -47,12 +47,12 @@ function createParser(uri, res) {
         }
       }
     },
-    ontext: function(text) {
+    ontext: text => {
       if (isHead && current === 'title') {
         res.title += text;
       }
     },
-    onclosetag: function(name) {
+    onclosetag: name => {
       if (name === 'head') {
         isHead = false;
       }
