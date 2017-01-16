@@ -26,8 +26,9 @@ extract({ uri: 'http://www.newyorker.com' }, (err, res) =>
 );
 ```
 
-The first parameter `opts` as in [hyperquest](https://github.com/substack/hyperquest) module
+The first parameter `opts` as in [hyperquest](https://github.com/substack/hyperquest) module and:
 
+* **maxRedirects**, default 10, max redirects to follow
 
 License MIT;
 

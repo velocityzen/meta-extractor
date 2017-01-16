@@ -60,42 +60,72 @@ function createParser(uri, res) {
   }, { decodeEntities: true });
 }
 
-function extract(opts, cb) {
-  let uri = url.parse(opts.uri);
+function parseResponse(uri, response, cb) {
+  let uriParts = url.parse(uri);
   let res = {
-    host: uri.host,
-    path: uri.path,
+    host: uriParts.host,
+    path: uriParts.path,
     title: ''
   };
 
   let parser;
   let isClosed = false;
   let isFileChecked = false;
-  let req = hyperquest(opts)
-    .on('data', chunk => {
-      if (!isFileChecked) {
-        let file = fileType(chunk);
 
-        if (file) {
-          res.file = file;
-          req.end();
-          isClosed = true;
-          req.destroy();
-          return;
-        }
+  response.on('data', chunk => {
+    if (!isFileChecked) {
+      let file = fileType(chunk);
 
-        parser = createParser(opts.uri, res);
-        isFileChecked = true;
+      if (file) {
+        res.file = file;
+        response.resume();
+        isClosed = true;
+        return;
       }
 
-      parser.write(chunk);
+      parser = createParser(uri, res);
+      isFileChecked = true;
+    }
+
+    parser.write(chunk);
+  })
+  .on('end', () => {
+    res.title = res.title.replace(/\s{2,}|\n/gmi, '');
+    cb(null, res);
+  })
+  .on('close', () => !isClosed && cb(new Error('Read stream was closed')))
+  .on('error', cb);
+}
+
+function extract(opts, done) {
+  let maxRedirects = opts.maxRedirects === undefined ? 10 : opts.maxRedirects;
+
+  let request = (opts, cb) => {
+    let req = hyperquest(opts)
+    .on('response', response => {
+      let status = response.statusCode;
+
+      if (status >= 200 && status < 300) {
+        return parseResponse(opts.uri, response, cb);
+      }
+
+      if (status >= 300 && status < 400 && response.headers.location) {
+        req.destroy();
+
+        if (--maxRedirects <= 0) {
+          return cb(new Error('Max redirects exceeded.'));
+        }
+
+        let redirectUrl = url.resolve(opts.uri, response.headers.location);
+        return request(Object.assign({}, opts, { uri: redirectUrl }), cb);
+      }
+
+      cb(new Error(`Request Failed.\nStatus Code: ${status}`));
     })
-    .on('end', () => {
-      res.title = res.title.replace(/\s{2,}|\n/gmi, '');
-      cb(null, res);
-    })
-    .on('close', () => !isClosed && cb(new Error('Read stream was closed')))
-    .on('error', err => cb(err));
+    .on('error', cb);
+  }
+
+  request(opts, done);
 }
 
 module.exports = extract;
