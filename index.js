@@ -8,7 +8,7 @@ const VERSION = require('./package.json').version;
 
 const USERAGENT = `meta-extractor/${VERSION} (https://github.com/velocityzen/meta-extractor)`;
 
-let rxMeta = /charset|description|twitter:|og:|theme-color/im;
+let rxMeta = /charset|description|keywords|twitter:|og:|theme-color/im;
 
 function fixName(name) {
   return name.replace(/(?:\:|_)(\w)/g, (matches, letter) => {
