@@ -1,8 +1,12 @@
 'use strict';
 const url = require('url');
-const hyperquest = require('hyperquest');
+const got = require('got');
 const htmlparser = require('htmlparser2');
 const fileType = require('file-type');
+const Transform = require('stream').Transform;
+const VERSION = require('./package.json').version;
+
+const USERAGENT = `meta-extractor/${VERSION} (https://github.com/velocityzen/meta-extractor)`;
 
 let rxMeta = /charset|description|twitter:|og:|theme-color/im;
 
@@ -23,7 +27,7 @@ function parseMeta(attr) {
   }
 }
 
-function createParser(uri, res) {
+function createHtmlParser(uri, res) {
   let isHead = false;
   let current;
 
@@ -60,72 +64,60 @@ function createParser(uri, res) {
   }, { decodeEntities: true });
 }
 
-function parseResponse(uri, response, cb) {
-  let uriParts = url.parse(uri);
-  let res = {
-    host: uriParts.host,
-    path: uriParts.path,
+function createParser(uri, done) {
+  const urlParts = url.parse(uri);
+  const res = {
+    host: urlParts.host,
+    path: urlParts.path,
     title: ''
   };
 
   let parser;
-  let isClosed = false;
   let isFileChecked = false;
 
-  response.on('data', chunk => {
-    if (!isFileChecked) {
-      let file = fileType(chunk);
+  return new Transform({
+    transform: function(chunk, enc, cb) {
+      if (!isFileChecked) {
+        let file = fileType(chunk);
 
-      if (file) {
-        res.file = file;
-        response.resume();
-        isClosed = true;
-        return;
+        if (file) {
+          res.file = file;
+          this.resume();
+          return done(res);
+        }
+
+        parser = createHtmlParser(uri, res);
+        isFileChecked = true;
       }
 
-      parser = createParser(uri, res);
-      isFileChecked = true;
-    }
+      parser.write(chunk);
+      cb();
+    },
 
-    parser.write(chunk);
-  })
-  .on('end', () => {
-    res.title = res.title.replace(/\s{2,}|\n/gmi, '');
-    cb(null, res);
-  })
-  .on('close', () => !isClosed && cb(new Error('Read stream was closed')))
-  .on('error', cb);
+    flush: cb => {
+      res.title = res.title.replace(/\s{2,}|\n/gmi, '');
+      cb();
+      done(res);
+    }
+  });
 }
 
 function extract(opts, done) {
-  let maxRedirects = opts.maxRedirects === undefined ? 10 : opts.maxRedirects;
+  const uri = opts.uri;
+  opts.headers = Object.assign({
+    'User-Agent': USERAGENT
+  }, opts.headers);
 
-  let request = (opts, cb) => {
-    let req = hyperquest(opts)
-    .on('response', response => {
-      let status = response.statusCode;
+  let error = null;
 
-      if (status >= 200 && status < 300) {
-        return parseResponse(opts.uri, response, cb);
-      }
-
-      if (status >= 300 && status < 400 && response.headers.location) {
-        req.destroy();
-
-        if (--maxRedirects <= 0) {
-          return cb(new Error('Max redirects exceeded.'));
-        }
-
-        let redirectUrl = url.resolve(opts.uri, response.headers.location);
-        return request(Object.assign({}, opts, { uri: redirectUrl }), cb);
-      }
-
-      cb(new Error(`Request Failed.\nStatus Code: ${status}`));
+  got
+    .stream(uri, opts)
+    .on('error', err => {
+      error = err;
     })
-    .on('error', cb);
-  }
-
-  request(opts, done);
+    .pipe(createParser(uri, res => {
+      done(error, res)
+    }))
 }
 
 module.exports = extract;

@@ -1,5 +1,10 @@
 const extract = require('./index');
 
+//error
+extract({ uri: 'http://www.newyorker.com/doesnotexist' }, (err, res) =>
+  console.log(err, res)
+);
+
 //url
 extract({ uri: 'http://www.newyorker.com' }, (err, res) =>
   console.log(err, res)
