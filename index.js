@@ -8,7 +8,7 @@ const VERSION = require('./package.json').version;
 
 const USERAGENT = `meta-extractor/${VERSION} (https://github.com/velocityzen/meta-extractor)`;
 
-let rxMeta = /charset|description|keywords|twitter:|og:|theme-color/im;
+const rxMeta = /charset|description|keywords|twitter:|og:|theme-color/im;
 
 function fixName(name) {
   return name.replace(/(?:\:|_)(\w)/g, (matches, letter) => {
@@ -17,7 +17,7 @@ function fixName(name) {
 }
 
 function parseMeta(attr) {
-  let name = attr.name || attr.property || Object.keys(attr)[0];
+  const name = attr.name || attr.property || Object.keys(attr)[0];
 
   if (rxMeta.test(name)) {
     return [
@@ -108,16 +108,15 @@ function extract(opts, done) {
     'User-Agent': USERAGENT
   }, opts.headers);
 
-  let error = null;
+  let isDone = false;
 
   got
     .stream(uri, opts)
     .on('error', err => {
-      error = err;
+      done(err);
+      isDone = true;
     })
-    .pipe(createParser(uri, res => {
-      done(error, res)
-    }))
+    .pipe(createParser(uri, res => !isDone && done(null, res) ))
 }
 
 module.exports = extract;

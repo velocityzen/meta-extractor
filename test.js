@@ -1,33 +1,82 @@
+'use strict';
+const test = require('ava');
 const extract = require('./index');
 
-//error
-extract({ uri: 'http://www.newyorker.com/doesnotexist' }, (err, res) =>
-  console.log('error', err, res)
-);
+test.cb('checks 404 Not Found resource', t => {
+  extract({ uri: 'http://www.newyorker.com/doesnotexist' }, (err, res) => {
+    t.is(err.statusCode, 404);
+    t.falsy(res);
+    t.end();
+  });
+});
 
-//url
-extract({ uri: 'http://www.newyorker.com' }, (err, res) =>
-  console.log('url', err, res)
-);
+test.cb('checks host resource', t => {
+  extract({ uri: 'http://www.newyorker.com' }, (err, res) => {
+    t.falsy(err);
+    t.truthy(res);
+    t.is(res.host, 'www.newyorker.com');
+    t.truthy(res.title);
+    t.truthy(res.description);
+    t.truthy(res.images);
+    t.truthy(res.ogTitle);
+    t.truthy(res.ogDescription);
+    t.truthy(res.twitterTitle);
+    t.truthy(res.twitterDescription);
+    t.end();
+  });
+});
 
-//page
-extract({ uri: 'http://www.w3.org/TR/html4/index/list.html' }, (err, res) =>
-  console.log('page', err, res)
-);
+test.cb('checks page resource', t => {
+  extract({ uri: 'http://www.w3.org/TR/html4/index/list.html' }, (err, res) => {
+    t.falsy(err);
+    t.truthy(res);
+    t.is(res.host, 'www.w3.org');
+    t.truthy(res.title);
+    t.truthy(res.path);
+    t.end();
+  });
+});
 
-//file
-extract({ uri: 'https://superpow.im/static/icons/ogpreview.png' }, (err, res) =>
-  console.log('file', err, res)
-);
+test.cb('checks binary file', t => {
+  extract({ uri: 'https://superpow.im/static/icons/ogpreview.png' }, (err, res) => {
+    t.falsy(err);
+    t.truthy(res);
+    t.is(res.host, 'superpow.im');
+    t.truthy(res.file);
+    t.is(res.file.ext, 'png');
+    t.is(res.file.mime, 'image/png');
+    t.end();
+  });
+});
 
-//media
-extract({ uri: 'https://www.youtube.com/watch?v=9M77quPL3vY&list=RDEMhe2AFH_WvB5nuMd9tU5CHg&index=27' }, (err, res) =>
-  console.log('media', err, res)
-);
+test.cb('checks the media resource', t => {
+  extract({ uri: 'https://www.youtube.com/watch?v=9M77quPL3vY&list=RDEMhe2AFH_WvB5nuMd9tU5CHg&index=27' }, (err, res) => {
+    t.falsy(err);
+    t.truthy(res);
+    t.truthy(res.images);
+    t.is(res.host, 'www.youtube.com');
+    t.is(res.ogType, 'video');
+    t.is(res.ogVideoWidth, '480');
+    t.is(res.ogVideoHeight, '360');
+    t.end();
+  });
+});
 
-//redirect
-extract({ uri: 'https://uxdesign.cc/how-ux-helped-me-learn-english-7f763b81bf0e#.hhgkmdu3r' }, (err, res) =>
-  console.log('redirect', err, res)
-);
+test.cb('checks the url with redirects', t => {
+  extract({ uri: 'https://uxdesign.cc/how-ux-helped-me-learn-english-7f763b81bf0e#.hhgkmdu3r' }, (err, res) => {
+    t.falsy(err);
+    t.truthy(res);
+    t.is(res.host, 'uxdesign.cc');
+    t.end();
+  });
+});
 
+test.cb('checks the wrong url', t => {
+  extract({ uri: 'http://www.smsport.xyz' }, (err, res) => {
+    t.falsy(res);
+    t.truthy(err);
+    t.is(err.code, 'ENOTFOUND');
+    t.end();
+  });
+});
 
