@@ -71,12 +71,14 @@ test.cb('checks the url with redirects', t => {
   });
 });
 
-test.cb('checks the wrong url', t => {
-  extract({ uri: 'http://www.smsport.xyz' }, (err, res) => {
-    t.falsy(res);
-    t.truthy(err);
-    t.is(err.code, 'ENOTFOUND');
+test.cb('gets the custom meta', t => {
+  extract({
+    uri: 'https://meduza.io/en',
+    rxMeta: /vk:/im
+  }, (err, res) => {
+    t.falsy(err);
+    t.truthy(res);
+    t.truthy(res.vkImage);
     t.end();
   });
 });
-

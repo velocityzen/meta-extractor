@@ -8,18 +8,14 @@ const VERSION = require('./package.json').version;
 
 const USERAGENT = `meta-extractor/${VERSION} (https://github.com/velocityzen/meta-extractor)`;
 
-const rxMeta = /charset|description|keywords|twitter:|og:|theme-color/im;
-
 function fixName(name) {
-  return name.replace(/(?:\:|_)(\w)/g, (matches, letter) => {
-    return letter.toUpperCase();
-  });
+  return name.replace(/(?::|_)(\w)/g, (matches, letter) => letter.toUpperCase());
 }
 
-function parseMeta(attr) {
+function parseMeta(attr, rx) {
   const name = attr.name || attr.property || Object.keys(attr)[0];
 
-  if (rxMeta.test(name)) {
+  if (rx.test(name)) {
     return [
       fixName(name),
       attr.content || attr[name]
@@ -27,7 +23,7 @@ function parseMeta(attr) {
   }
 }
 
-function createHtmlParser(uri, res) {
+function createHtmlParser(res, opts) {
   let isHead = false;
   let current;
 
@@ -37,17 +33,17 @@ function createHtmlParser(uri, res) {
       if (name === 'head') {
         isHead = true;
       } else if (name === 'meta') {
-        let meta = parseMeta(attrs);
+        const meta = parseMeta(attrs, opts.rx);
         if (meta && !res[meta[0]]) {
           res[meta[0]] = meta[1];
         }
       } else if (name === 'img') {
-        let src = attrs.src;
+        const src = attrs.src;
         if (src && src.substr(0, 4) !== 'data') {
           if (!res.images) {
             res.images = new Set();
           }
-          res.images.add(url.resolve(uri, src));
+          res.images.add(url.resolve(opts.uri, src));
         }
       }
     },
@@ -64,8 +60,8 @@ function createHtmlParser(uri, res) {
   }, { decodeEntities: true });
 }
 
-function createParser(uri, done) {
-  const urlParts = url.parse(uri);
+function createParser(opts, done) {
+  const urlParts = url.parse(opts.uri);
   const res = {
     host: urlParts.host,
     path: urlParts.path,
@@ -86,7 +82,10 @@ function createParser(uri, done) {
           return done(res);
         }
 
-        parser = createHtmlParser(uri, res);
+        parser = createHtmlParser(res, {
+          uri: opts.uri,
+          rx: opts.rx
+        });
         isFileChecked = true;
       }
 
@@ -116,7 +115,10 @@ function extract(opts, done) {
       done(err);
       isDone = true;
     })
-    .pipe(createParser(uri, res => !isDone && done(null, res) ))
+    .pipe(createParser({
+      uri,
+      rx: opts.rxMeta || /charset|description|keywords|twitter:|og:|vk:|al:|theme-color/im
+    }, res => !isDone && done(null, res)))
 }
 
 module.exports = extract;

@@ -10,8 +10,10 @@ Extracts:
 * description
 * charset
 * theme-color
-* all opengraph related data
-* all twitter related data
+* all opengraph meta data
+* all twitter meta data
+* all app links meta data
+* all vk meta data
 * all unique image urls (absolute)
 * __returns mime and extension for binary files__
 
@@ -31,7 +33,9 @@ extract({ uri: 'http://www.newyorker.com' }, (err, res) =>
 
 The first parameter `opts` as in [got](https://github.com/sindresorhus/got) module and:
 
-**uri** — uri to get meta from;
+* **uri** — uri to get meta from;
+* rxMeta — regexp, custom regexp for meta data.
+
 
 License MIT;
 
