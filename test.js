@@ -2,40 +2,35 @@
 const test = require('ava');
 const extract = require('./index');
 
-test.cb('checks 404 Not Found resource', t => {
-  extract({ uri: 'http://www.newyorker.com/doesnotexist' }, (err, res) => {
+test('checks 404 Not Found resource', t => extract({ uri: 'http://www.newyorker.com/doesnotexist' })
+  .then(() => t.fail())
+  .catch(err => {
     t.is(err.statusCode, 404);
-    t.falsy(res);
-    t.end();
-  });
-});
+  })
+);
 
 test.cb('checks host resource', t => {
-  extract({ uri: 'http://www.newyorker.com' }, (err, res) => {
+  extract({ uri: 'https://www.nytimes.com/' }, (err, res) => {
     t.falsy(err);
     t.truthy(res);
-    t.is(res.host, 'www.newyorker.com');
+    t.is(res.host, 'www.nytimes.com');
     t.truthy(res.title);
     t.truthy(res.description);
     t.truthy(res.images);
     t.truthy(res.ogTitle);
     t.truthy(res.ogDescription);
-    t.truthy(res.twitterTitle);
-    t.truthy(res.twitterDescription);
     t.end();
   });
 });
 
-test.cb('checks page resource', t => {
-  extract({ uri: 'http://www.w3.org/TR/html4/index/list.html' }, (err, res) => {
-    t.falsy(err);
+test('checks page resource', t => extract({ uri: 'http://www.w3.org/TR/html4/index/list.html' })
+  .then(res => {
     t.truthy(res);
     t.is(res.host, 'www.w3.org');
     t.truthy(res.title);
     t.truthy(res.path);
-    t.end();
-  });
-});
+  })
+);
 
 test.cb('checks binary file', t => {
   extract({ uri: 'https://superpow.im/static/icons/ogpreview.png' }, (err, res) => {
@@ -82,3 +77,10 @@ test.cb('gets the custom meta', t => {
     t.end();
   });
 });
+
+test('checks the feeds links', t => extract({ uri: 'https://www.wired.com/beyond-the-beyond/2018/01/david-byrnes-reasons-cheerful/' })
+  .then(res => {
+    t.truthy(res);
+    t.truthy(res.feeds);
+  })
+)

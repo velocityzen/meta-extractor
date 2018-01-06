@@ -12,15 +12,29 @@ function fixName(name) {
   return name.replace(/(?::|_)(\w)/g, (matches, letter) => letter.toUpperCase());
 }
 
-function parseMeta(attr, rx) {
-  const name = attr.name || attr.property || Object.keys(attr)[0];
+function parseMeta(attrs, rx) {
+  const name = attrs.name || attrs.property || Object.keys(attrs)[0];
 
   if (rx.test(name)) {
     return [
       fixName(name),
-      attr.content || attr[name]
+      attrs.content || attrs[name]
     ]
   }
+}
+
+function parseFeed(attrs) {
+  const match = /^application\/(atom|rss)\+xml$/i.exec(attrs.type);
+
+  if (!match) {
+    return;
+  }
+
+  return {
+    type: match[1],
+    href: attrs.href,
+    title: attrs.title
+  };
 }
 
 function createHtmlParser(res, opts) {
@@ -44,6 +58,16 @@ function createHtmlParser(res, opts) {
             res.images = new Set();
           }
           res.images.add(url.resolve(opts.uri, src));
+        }
+      }
+
+      if (isHead && name === 'link') {
+        const feed = parseFeed(attrs);
+        if (feed) {
+          if (!res.feeds) {
+            res.feeds = [];
+          }
+          res.feeds.push(feed);
         }
       }
     },
@@ -101,7 +125,7 @@ function createParser(opts, done) {
   });
 }
 
-function extract(opts, done) {
+function _extract(opts, done) {
   const uri = opts.uri;
   opts.headers = Object.assign({
     'User-Agent': USERAGENT
@@ -119,6 +143,16 @@ function extract(opts, done) {
       uri,
       rx: opts.rxMeta || /charset|description|keywords|twitter:|og:|vk:|al:|theme-color/im
     }, res => !isDone && done(null, res)))
+}
+
+function extract(opts, done) {
+  if (!done) {
+    return new Promise((resolve, reject) => {
+      _extract(opts, (err, res) => err ? reject(err) : resolve(res))
+    });
+  }
+
+  _extract(opts, done);
 }
 
 module.exports = extract;
