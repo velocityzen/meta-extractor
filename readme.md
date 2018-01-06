@@ -38,7 +38,7 @@ extract({ uri: 'http://www.newyorker.com' })
   .catch(err => console.error(err));
 ```
 
-If no callback provided return a Promise.
+If no callback provided returns a Promise.
 
 The first parameter `opts` as in [got](https://github.com/sindresorhus/got) module and:
 
