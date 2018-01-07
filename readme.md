@@ -10,7 +10,7 @@ Extracts:
 * description
 * charset
 * theme-color
-* feeds links
+* rss/atom feeds
 * all opengraph meta data
 * all twitter meta data
 * all app links meta data
