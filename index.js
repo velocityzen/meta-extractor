@@ -85,6 +85,7 @@ function createHtmlParser(res, opts) {
 }
 
 function createParser(opts, done) {
+  const limit = opts.limit;
   const urlParts = url.parse(opts.uri);
   const res = {
     host: urlParts.host,
@@ -94,16 +95,24 @@ function createParser(opts, done) {
 
   let parser;
   let isFileChecked = false;
+  let size = 0;
 
   return new Transform({
     transform: function(chunk, enc, cb) {
+      size += chunk.length;
+
+      if (size >= limit) {
+        this.resume();
+        return done(new Error('Response body limit exceeded'));
+      }
+
       if (!isFileChecked) {
         let file = fileType(chunk);
 
         if (file) {
           res.file = file;
           this.resume();
-          return done(res);
+          return done(null, res);
         }
 
         parser = createHtmlParser(res, {
@@ -120,13 +129,14 @@ function createParser(opts, done) {
     flush: cb => {
       res.title = res.title.replace(/\s{2,}|\n/gmi, '');
       cb();
-      done(res);
+      done(null, res);
     }
   });
 }
 
 function _extract(opts, done) {
   const uri = opts.uri;
+  const limit = opts.limit || 2 * 1024 * 1024;
   opts.headers = Object.assign({
     'User-Agent': USERAGENT
   }, opts.headers);
@@ -140,9 +150,11 @@ function _extract(opts, done) {
       isDone = true;
     })
     .pipe(createParser({
-      uri,
+      uri, limit,
       rx: opts.rxMeta || /charset|description|keywords|twitter:|og:|vk:|al:|theme-color/im
-    }, res => !isDone && done(null, res)))
+    }, (err, res) => {
+      !isDone && done(err, res)
+    }));
 }
 
 function extract(opts, done) {

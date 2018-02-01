@@ -42,8 +42,9 @@ If no callback provided returns a Promise.
 
 The first parameter `opts` as in [got](https://github.com/sindresorhus/got) module and:
 
-* **uri** — uri to get meta from;
+* **uri** — uri to get meta from.
 * rxMeta — regexp, custom regexp for meta data.
+* limit — number, response body size limit in bytes. Default 2Mb.
 
 
 License MIT;

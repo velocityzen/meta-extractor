@@ -50,7 +50,7 @@ test.cb('checks the media resource', t => {
     t.truthy(res);
     t.truthy(res.images);
     t.is(res.host, 'www.youtube.com');
-    t.is(res.ogType, 'video');
+    t.is(res.ogType, 'video.other');
     t.is(res.ogVideoWidth, '480');
     t.is(res.ogVideoHeight, '360');
     t.end();
@@ -83,4 +83,16 @@ test('checks the feeds links', t => extract({ uri: 'https://www.wired.com/beyond
     t.truthy(res);
     t.truthy(res.feeds);
   })
-)
+);
+
+test.cb('checks the response limit', t => {
+  extract({
+    uri: 'https://www.youtube.com/watch?v=9M77quPL3vY&list=RDEMhe2AFH_WvB5nuMd9tU5CHg&index=27',
+    limit: 10
+  }, (err, res) => {
+    t.truthy(err);
+    t.is(err.message, 'Response body limit exceeded');
+    t.falsy(res);
+    t.end();
+  });
+});
