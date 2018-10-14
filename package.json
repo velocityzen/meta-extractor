@@ -25,12 +25,12 @@
   },
   "homepage": "https://github.com/velocityzen/meta-extractor#readme",
   "dependencies": {
-    "file-type": "^7.5.0",
-    "got": "^8.0.3",
+    "file-type": "^10.0.0",
+    "got": "^9.0.0",
     "htmlparser2": "^3.9.0"
   },
   "devDependencies": {
     "ava": "^0.25.0",
-    "nyc": "^11.4.1"
+    "nyc": "^13.0.0"
   }
 }

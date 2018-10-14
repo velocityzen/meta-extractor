@@ -33,10 +33,10 @@ test('checks page resource', t => extract({ uri: 'http://www.w3.org/TR/html4/ind
 );
 
 test.cb('checks binary file', t => {
-  extract({ uri: 'https://superpow.im/static/icons/ogpreview.png' }, (err, res) => {
+  extract({ uri: 'https://media.newyorker.com/photos/597238624867016af4a67a62/16:9/w_1200,h_630,c_limit/HP-Social-Tout-B-072117.png' }, (err, res) => {
     t.falsy(err);
     t.truthy(res);
-    t.is(res.host, 'superpow.im');
+    t.is(res.host, 'media.newyorker.com');
     t.truthy(res.file);
     t.is(res.file.ext, 'png');
     t.is(res.file.mime, 'image/png');
