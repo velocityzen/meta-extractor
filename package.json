@@ -1,6 +1,6 @@
 {
   "name": "meta-extractor",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Simple, stream based, html meta data extractor",
   "main": "index.js",
   "scripts": {
