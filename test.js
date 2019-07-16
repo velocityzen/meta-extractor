@@ -9,7 +9,7 @@ test('checks 404 Not Found resource', t => extract({ uri: 'http://www.newyorker.
   })
 );
 
-test.cb('checks host resource', t => {
+test.cb('checks host resource with callback syntax', t => {
   extract({ uri: 'https://www.nytimes.com/' }, (err, res) => {
     t.falsy(err);
     t.truthy(res);
@@ -23,14 +23,6 @@ test.cb('checks host resource', t => {
   });
 });
 
-test('checks page resource and async syntax', async t => {
-  const res = await extract({ uri: 'http://www.w3.org/TR/html4/index/list.html' });
-  t.truthy(res);
-  t.is(res.host, 'www.w3.org');
-  t.truthy(res.title);
-  t.truthy(res.path);
-});
-
 test('checks page resource and promise syntax', t => extract({ uri: 'http://www.w3.org/TR/html4/index/list.html' })
   .then(res => {
     t.truthy(res);
@@ -40,58 +32,54 @@ test('checks page resource and promise syntax', t => extract({ uri: 'http://www.
   })
 );
 
-test.cb('checks binary file', t => {
-  extract({ uri: 'https://media.newyorker.com/photos/597238624867016af4a67a62/16:9/w_1200,h_630,c_limit/HP-Social-Tout-B-072117.png' }, (err, res) => {
-    t.falsy(err);
-    t.truthy(res);
-    t.is(res.host, 'media.newyorker.com');
-    t.truthy(res.file);
-    t.is(res.file.ext, 'png');
-    t.is(res.file.mime, 'image/png');
-    t.end();
-  });
+test('checks page resource', async t => {
+  const res = await extract({ uri: 'http://www.w3.org/TR/html4/index/list.html' });
+  t.truthy(res);
+  t.is(res.host, 'www.w3.org');
+  t.truthy(res.title);
+  t.truthy(res.path);
 });
 
-test.cb('checks the media resource', t => {
-  extract({ uri: 'https://www.youtube.com/watch?v=9M77quPL3vY&list=RDEMhe2AFH_WvB5nuMd9tU5CHg&index=27' }, (err, res) => {
-    t.falsy(err);
-    t.truthy(res);
-    t.truthy(res.images);
-    t.is(res.host, 'www.youtube.com');
-    t.is(res.ogType, 'video.other');
-    t.is(res.ogVideoWidth, '480');
-    t.is(res.ogVideoHeight, '360');
-    t.end();
-  });
+test('checks binary file', async t => {
+  const res = await extract({ uri: 'https://media.newyorker.com/photos/597238624867016af4a67a62/16:9/w_1200,h_630,c_limit/HP-Social-Tout-B-072117.png' });
+  t.truthy(res);
+  t.is(res.host, 'media.newyorker.com');
+  t.truthy(res.file);
+  t.is(res.file.ext, 'png');
+  t.is(res.file.mime, 'image/png');
 });
 
-test.cb('checks the url with redirects', t => {
-  extract({ uri: 'https://uxdesign.cc/how-ux-helped-me-learn-english-7f763b81bf0e#.hhgkmdu3r' }, (err, res) => {
-    t.falsy(err);
-    t.truthy(res);
-    t.is(res.host, 'uxdesign.cc');
-    t.end();
-  });
+test('checks the media resource', async t => {
+  const res = await extract({ uri: 'https://www.youtube.com/watch?v=9M77quPL3vY&list=RDEMhe2AFH_WvB5nuMd9tU5CHg&index=27' });
+  t.truthy(res);
+  t.truthy(res.images);
+  t.is(res.host, 'www.youtube.com');
+  t.is(res.ogType, 'video.other');
+  t.is(res.ogVideoWidth, '480');
+  t.is(res.ogVideoHeight, '360');
 });
 
-test.cb('gets the custom meta', t => {
-  extract({
+test('checks the url with redirects', async t => {
+  const res = await extract({ uri: 'https://uxdesign.cc/how-ux-helped-me-learn-english-7f763b81bf0e#.hhgkmdu3r' });
+  t.truthy(res);
+  t.is(res.host, 'uxdesign.cc');
+});
+
+test('gets the custom meta', async t => {
+  const res = await extract({
     uri: 'https://meduza.io/en',
     rxMeta: /vk:/im
-  }, (err, res) => {
-    t.falsy(err);
-    t.truthy(res);
-    t.truthy(res.vkImage);
-    t.end();
-  });
+  })
+
+  t.truthy(res);
+  t.truthy(res.vkImage);
 });
 
-test('checks the feeds links', t => extract({ uri: 'https://www.wired.com/beyond-the-beyond/2018/01/david-byrnes-reasons-cheerful/' })
-  .then(res => {
-    t.truthy(res);
-    t.truthy(res.feeds);
-  })
-);
+test('checks the feeds links', async t => {
+  const res = await extract({ uri: 'https://www.wired.com/beyond-the-beyond/2018/01/david-byrnes-reasons-cheerful/' });
+  t.truthy(res);
+  t.truthy(res.feeds);
+});
 
 test.cb('checks the response limit', t => {
   extract({
