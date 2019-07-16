@@ -33,9 +33,8 @@ extract({ uri: 'http://www.newyorker.com' }, (err, res) =>
 
 or
 
-extract({ uri: 'http://www.newyorker.com' })
-  .then(res => console.log(res))
-  .catch(err => console.error(err));
+const res = await extract({ uri: 'http://www.newyorker.com' });
+console.log(res);
 ```
 
 If no callback provided returns a Promise.

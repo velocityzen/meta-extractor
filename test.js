@@ -23,7 +23,15 @@ test.cb('checks host resource', t => {
   });
 });
 
-test('checks page resource', t => extract({ uri: 'http://www.w3.org/TR/html4/index/list.html' })
+test('checks page resource and async syntax', async t => {
+  const res = await extract({ uri: 'http://www.w3.org/TR/html4/index/list.html' });
+  t.truthy(res);
+  t.is(res.host, 'www.w3.org');
+  t.truthy(res.title);
+  t.truthy(res.path);
+});
+
+test('checks page resource and promise syntax', t => extract({ uri: 'http://www.w3.org/TR/html4/index/list.html' })
   .then(res => {
     t.truthy(res);
     t.is(res.host, 'www.w3.org');
