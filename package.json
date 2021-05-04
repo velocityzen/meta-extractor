@@ -25,9 +25,9 @@
   },
   "homepage": "https://github.com/velocityzen/meta-extractor#readme",
   "dependencies": {
-    "file-type": "^14.0.0",
-    "got": "^10.6.0",
-    "htmlparser2": "^4.0.0"
+    "file-type": "^16.0.0",
+    "got": "^11.8.0",
+    "htmlparser2": "^6.1.0"
   },
   "devDependencies": {
     "ava": "^3.0.0",

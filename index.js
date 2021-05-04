@@ -1,10 +1,10 @@
-'use strict';
-const url = require('url');
-const got = require('got');
-const htmlparser = require('htmlparser2');
-const FileType = require('file-type');
-const Transform = require('stream').Transform;
-const VERSION = require('./package.json').version;
+"use strict";
+const url = require("url");
+const got = require("got");
+const htmlparser = require("htmlparser2");
+const FileType = require("file-type");
+const Transform = require("stream").Transform;
+const VERSION = require("./package.json").version;
 
 const USERAGENT = `meta-extractor/${VERSION} (https://github.com/velocityzen/meta-extractor)`;
 
@@ -19,7 +19,7 @@ function getError(error) {
 }
 
 function fixName(name) {
-  return name.replace(/(?::|_)(\w)/g, (matches, letter) =>
+  return name.replace(/(?::|_|-)(\w)/g, (matches, letter) =>
     letter.toUpperCase()
   );
 }
@@ -42,7 +42,7 @@ function parseFeed(attrs) {
   return {
     type: match[1],
     href: attrs.href,
-    title: attrs.title
+    title: attrs.title,
   };
 }
 
@@ -54,16 +54,16 @@ function createHtmlParser(res, opts) {
     {
       onopentag: (name, attrs) => {
         current = name;
-        if (name === 'head') {
+        if (name === "head") {
           isHead = true;
-        } else if (name === 'meta') {
+        } else if (name === "meta") {
           const meta = parseMeta(attrs, opts.rx);
           if (meta && !res[meta[0]]) {
             res[meta[0]] = meta[1];
           }
-        } else if (name === 'img') {
+        } else if (name === "img") {
           const src = attrs.src;
-          if (src && src.substr(0, 4) !== 'data') {
+          if (src && src.substr(0, 4) !== "data") {
             if (!res.images) {
               res.images = new Set();
             }
@@ -71,7 +71,7 @@ function createHtmlParser(res, opts) {
           }
         }
 
-        if (isHead && name === 'link') {
+        if (isHead && name === "link") {
           const feed = parseFeed(attrs);
           if (feed) {
             if (!res.feeds) {
@@ -81,16 +81,16 @@ function createHtmlParser(res, opts) {
           }
         }
       },
-      ontext: text => {
-        if (isHead && current === 'title') {
+      ontext: (text) => {
+        if (isHead && current === "title") {
           res.title += text;
         }
       },
-      onclosetag: name => {
-        if (name === 'head') {
+      onclosetag: (name) => {
+        if (name === "head") {
           isHead = false;
         }
-      }
+      },
     },
     { decodeEntities: true }
   );
@@ -103,23 +103,23 @@ function createParser(opts, done) {
   const res = {
     host: url.host,
     pathname: url.pathname,
-    title: ''
+    title: "",
   };
 
   let parser;
   let size = 0;
 
   return new Transform({
-    transform: function(chunk, enc, cb) {
+    transform: function (chunk, enc, cb) {
       size += chunk.length;
 
       if (size >= limit) {
         this.resume();
-        return done(new Error('Response body limit exceeded'));
+        return done(new Error("Response body limit exceeded"));
       }
 
       if (!parser) {
-        FileType.fromBuffer(Buffer.from(chunk)).then(file => {
+        FileType.fromBuffer(Buffer.from(chunk)).then((file) => {
           if (file) {
             res.file = file;
             this.resume();
@@ -128,7 +128,7 @@ function createParser(opts, done) {
 
           parser = createHtmlParser(res, {
             uri: opts.uri,
-            rx: opts.rx
+            rx: opts.rx,
           });
 
           parser.write(chunk);
@@ -140,11 +140,11 @@ function createParser(opts, done) {
       }
     },
 
-    flush: cb => {
-      res.title = res.title.replace(/\s{2,}|\n/gim, '');
+    flush: (cb) => {
+      res.title = res.title.replace(/\s{2,}|\n/gim, "");
       cb();
       done(null, res);
-    }
+    },
   });
 }
 
@@ -153,7 +153,7 @@ function _extract(opts, done) {
   const limit = opts.limit || 2 * 1024 * 1024;
   opts.headers = Object.assign(
     {
-      'User-Agent': USERAGENT
+      "User-Agent": USERAGENT,
     },
     opts.headers
   );
@@ -162,7 +162,7 @@ function _extract(opts, done) {
 
   got
     .stream(uri, opts)
-    .on('error', err => {
+    .on("error", (err) => {
       done(getError(err));
       isDone = true;
     })
@@ -173,7 +173,7 @@ function _extract(opts, done) {
           limit,
           rx:
             opts.rxMeta ||
-            /charset|description|keywords|twitter:|og:|vk:|al:|theme-color/im
+            /charset|description|keywords|twitter:|og:|vk:|al:|theme-color/im,
         },
         (err, res) => {
           !isDone && done(err, res);
