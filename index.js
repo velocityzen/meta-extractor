@@ -152,11 +152,13 @@ function _extract(opts, done) {
   const uri = opts.uri;
   const limit = opts.limit || 2 * 1024 * 1024;
   opts.headers = Object.assign(
-    {
-      "User-Agent": USERAGENT,
-    },
+    {},
     opts.headers
   );
+  
+  if (opts.headers["user-agent"] == undefined && opts.headers["User-Agent"] == undefined) {
+    opts.headers["User-Agent"] = USERAGENT;
+  }
 
   let isDone = false;
 
